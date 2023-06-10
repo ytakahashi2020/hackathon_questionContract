@@ -1,3 +1,130 @@
+# 1 デプロイ方法
+
+以下のコマンドを実行してください。
+```
+npx thirdweb deploy
+```
+thirdwebが立ち上がるため、そのまま処理を実行
+
+# ２ サンプルコード
+
+https://thirdweb.com/mumbai/0x753E053Efee400D49B389E39F7188F412616413a/explorer
+
+# 3 仕様一覧
+
+## 1 問題作成関数 (setQyestions)
+
+オーナーのみが問題を作成できる。（将来的には管理者権限を持つものが実行可能にする予定）
+
+問題番号と問題、解答を入力する
+
+```sol
+function setQyestions(
+        uint256 _number,
+        string memory _question,
+        string memory _answer
+    ) public  onlyOwner {
+        question[_number] = _question;
+        answer[_number] = _answer;
+
+        emit QuestionSet(_number, _question, _answer);
+}
+```
+
+## ２ コメント作成関数 (newComment)
+
+誰でもコメントが可能
+
+どの問題番号についてかを入力し、コメントを行う
+
+```sol
+function newComment(
+        uint256 comment_number,
+        string memory _comment
+    ) public {
+        commentCount++;
+        countByQuestion[comment_number]++;
+        countByAddress[msg.sender]++;
+        comment[comment_number][countByQuestion[comment_number]] = _comment;
+        commentsByAddress[msg.sender][countByAddress[msg.sender]] = _comment;
+
+        emit NewComment(msg.sender, block.timestamp, _comment);
+}
+```
+
+## 3 投票可能者設定関数 (whitelistUsers)
+
+オーナーのみが問題を作成できる。（将来的には管理者権限を持つものが実行可能にする予定）
+
+Questionには、誤りがある可能性がある。
+
+問題を変更したいと考えた場合、その問題に対して、投票ができる。
+
+しかし、誰でも投票できることを防ぐため、ホワイトリストを作成し、ホワイトリスト登録者のみが投票できる。
+
+```sol
+function whitelistUsers(address[] calldata _users) public onlyOwner {
+        delete whitelistedAddresses;
+        whitelistedAddresses = _users;
+}
+```
+
+## 4 投票可能者関数 (isWhitelisted)
+
+投票者がホワイトリストに登録されているかをチェックする
+```sol
+function isWhitelisted(address _user) public view returns (bool) {
+        for (uint i = 0; i < whitelistedAddresses.length; i++) {
+            if (whitelistedAddresses[i] == _user) {
+                return true;
+            }
+        }
+        return false;
+}
+```
+
+## 5 投票実行関数 (setFavorNumber)
+
+ホワイトリスト登録者のみが投票を行うことができる。
+
+一つの問題に対し、１回までしか投票することができない。
+
+有効投票数に達した時にイベントを発火する
+
+```sol
+function setFavorNumber (uint256 _number) public {
+        require(isWhitelisted(msg.sender), "user is not whitelisted");
+        require(userCount[msg.sender][_number] == 0, "you already set favor");
+        favorNumber[_number]++;
+        userCount[msg.sender][_number]++;
+        // 有効投票数の達した時にイベント発生
+        if ( favorNumber[_number] == validVotesNumber ) {
+            emit ValidVote(_number);
+        }
+}
+```
+
+## 6 問題変更関数 (changeQyestions)
+
+ホワイトリスト登録者かつ投票者のみが問題を作成できる。
+
+問題が変更された場合に、イベントが発火される。
+
+```sol
+function changeQyestions(
+        uint256 _number,
+        string memory _question,
+        string memory _answer
+    ) public {
+        require(favorNumber[_number] >= validVotesNumber, "favorNumber is too low");
+        require(isWhitelisted(msg.sender), "user is not whitelisted");
+        require(userCount[msg.sender][_number] == 1, "you didn't do favor");
+        question[_number] = _question;
+        answer[_number] = _answer;
+        emit QuestionSet(_number, _question, _answer);
+}
+```
+
 ## Getting Started
 
 Create a project using this example:
@@ -45,36 +172,3 @@ yarn release
 ## Join our Discord!
 
 For any questions, suggestions, join our discord at [https://discord.gg/thirdweb](https://discord.gg/thirdweb).
-
-# 個別内容
-
-## 1 デプロイ方法
-
-以下のコマンドを実行してください。
-```
-npx thirdweb deploy
-```
-thirdwebが立ち上がるため、そのまま処理を実行
-
-## ２ サンプルコード
-
-https://thirdweb.com/mumbai/0x753E053Efee400D49B389E39F7188F412616413a/explorer
-
-## 3 仕様一覧
-
-### 1 問題作成関数 (setQyestions)
-
-```sol
-function setQyestions(
-        uint256 _number,
-        string memory _question,
-        string memory _answer
-    ) public  onlyOwner {
-        question[_number] = _question;
-        answer[_number] = _answer;
-
-        emit QuestionSet(_number, _question, _answer);
-    }
-```
-
-
