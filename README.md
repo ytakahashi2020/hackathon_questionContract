@@ -62,9 +62,9 @@ https://thirdweb.com/mumbai/0x753E053Efee400D49B389E39F7188F412616413a/explorer
 
 ## 3 仕様一覧
 
-### 1 問題作成関数 setQyestions
+### 1 問題作成関数 (setQyestions)
 
-```
+```sol
 function setQyestions(
         uint256 _number,
         string memory _question,
