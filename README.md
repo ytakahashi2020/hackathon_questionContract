@@ -8,9 +8,13 @@ thirdwebが立ち上がるため、そのまま処理を実行
 
 # ２ サンプルコード
 
-https://thirdweb.com/mumbai/0x753E053Efee400D49B389E39F7188F412616413a/explorer
+https://thirdweb.com/mumbai/0xE8A18B63A1AD31Bcae4fb5dbB34cC029F5212C73/explorer
 
-# 3 仕様一覧
+# 3 合格証NFT
+
+https://thirdweb.com/mumbai/0xfdE7C0c3EaaD22Ca501571F96d42d28Ee9b89F16/nfts
+
+# 4 仕様一覧
 
 ## 1 問題作成関数 (setQyestions)
 
@@ -54,7 +58,7 @@ function newComment(
 
 ## 3 投票可能者設定関数 (whitelistUsers)
 
-オーナーのみが問題を作成できる。（将来的には管理者権限を持つものが実行可能にする予定）
+オーナーのみがホワイトリストを作成できる。（将来的には管理者権限を持つものが実行可能にする予定）
 
 Questionには、誤りがある可能性がある。
 
@@ -83,9 +87,33 @@ function isWhitelisted(address _user) public view returns (bool) {
 }
 ```
 
-## 5 投票実行関数 (setFavorNumber)
+## 5 合格証NFT所有数確認関数 (getErc721Balance)
 
-ホワイトリスト登録者のみが投票を行うことができる。
+別の合格証コントラクトのNFTの所持数を取得する
+合格証コントラクトはコンストラクタで設定済み
+
+```sol
+function getErc721Balance(address user) public view returns (uint256) {
+        return erc721Contract.balanceOf(user);
+}
+```
+
+## 6 有効ユーザー確認関数 (isValidUser)
+
+ホワイトリストに登録されている、もしくは合格証NFTを所持している場合はtrueを返す
+
+```sol
+function isValidUser(address _user) public view returns (bool) {
+        if(isWhitelisted(_user) || getErc721Balance(_user) > 0) {
+            return true;
+        }
+        return false;
+}
+```
+
+## 7 投票実行関数 (setFavorNumber)
+
+有効なユーザーのみが投票を行うことができる。
 
 一つの問題に対し、１回までしか投票することができない。
 
@@ -93,7 +121,7 @@ function isWhitelisted(address _user) public view returns (bool) {
 
 ```sol
 function setFavorNumber (uint256 _number) public {
-        require(isWhitelisted(msg.sender), "user is not whitelisted");
+        require(isValidUser(msg.sender), "user is not valid");
         require(userCount[msg.sender][_number] == 0, "you already set favor");
         favorNumber[_number]++;
         userCount[msg.sender][_number]++;
@@ -104,9 +132,9 @@ function setFavorNumber (uint256 _number) public {
 }
 ```
 
-## 6 問題変更関数 (changeQyestions)
+## 8 問題変更関数 (changeQyestions)
 
-ホワイトリスト登録者かつ投票者のみが問題を作成できる。
+有効なユーザーかつ投票者のみが問題を作成できる。
 
 問題が変更された場合に、イベントが発火される。
 
@@ -117,7 +145,7 @@ function changeQyestions(
         string memory _answer
     ) public {
         require(favorNumber[_number] >= validVotesNumber, "favorNumber is too low");
-        require(isWhitelisted(msg.sender), "user is not whitelisted");
+        require(isValidUser(msg.sender), "user is not valid");
         require(userCount[msg.sender][_number] == 1, "you didn't do favor");
         question[_number] = _question;
         answer[_number] = _answer;

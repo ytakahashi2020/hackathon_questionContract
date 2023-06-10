@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
-
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract Sample is Ownable{
-
+    IERC721 public erc721Contract;
 
     // 有効投票数
     uint256 validVotesNumber = 3;
@@ -57,6 +57,24 @@ contract Sample is Ownable{
         uint256 number
     );
 
+    // 合格証NFTのコントラクトを取得する
+    constructor(IERC721 _erc721Contract) {
+        erc721Contract = _erc721Contract;
+    }
+
+    // 合格証NFTの所持数を取得する
+    function getErc721Balance(address user) public view returns (uint256) {
+        return erc721Contract.balanceOf(user);
+    }
+    
+    // ホワイトリストに登録されているか、合格証NFTを持っていればTrue
+    function isValidUser(address _user) public view returns (bool) {
+        if(isWhitelisted(_user) || getErc721Balance(_user) > 0) {
+            return true;
+        }
+        return false;
+    }
+
     // 問題作成（オーナーのみ　将来的には管理者権限に変更したい）
     function setQyestions(
         uint256 _number,
@@ -101,7 +119,7 @@ contract Sample is Ownable{
 
     // 投票実行（ホワイトリスト登録者のみ可能）
     function setFavorNumber (uint256 _number) public {
-        require(isWhitelisted(msg.sender), "user is not whitelisted");
+        require(isValidUser(msg.sender), "user is not valid");
         require(userCount[msg.sender][_number] == 0, "you already set favor");
         favorNumber[_number]++;
         userCount[msg.sender][_number]++;
@@ -118,7 +136,7 @@ contract Sample is Ownable{
         string memory _answer
     ) public {
         require(favorNumber[_number] >= validVotesNumber, "favorNumber is too low");
-        require(isWhitelisted(msg.sender), "user is not whitelisted");
+        require(isValidUser(msg.sender), "user is not valid");
         require(userCount[msg.sender][_number] == 1, "you didn't do favor");
         question[_number] = _question;
         answer[_number] = _answer;
