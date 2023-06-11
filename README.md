@@ -8,7 +8,7 @@ thirdwebが立ち上がるため、そのまま処理を実行
 
 # ２ サンプルコード
 
-https://thirdweb.com/mumbai/0xE8A18B63A1AD31Bcae4fb5dbB34cC029F5212C73/explorer
+https://thirdweb.com/mumbai/0xbffCb094AC81aeCDE32ce274cCA218bC487d8FB1/explorer
 
 # 3 合格証NFT
 
@@ -156,6 +156,7 @@ function changeQyestions(
 ## 9 管理者権限設定関数 (addAdmin)
 
 管理者権限を設定します。
+
 管理者は問題の作成とホワイトリストの登録が可能になります。
 
 ```sol
