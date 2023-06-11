@@ -14,7 +14,7 @@ https://thirdweb.com/mumbai/0xbffCb094AC81aeCDE32ce274cCA218bC487d8FB1/explorer
 
 https://thirdweb.com/mumbai/0xfdE7C0c3EaaD22Ca501571F96d42d28Ee9b89F16/nfts
 
-# 4 合格証NFT
+# 4 リワードNFT
 
 https://thirdweb.com/mumbai/0x6e8FFFA7Dc7001285ABE71CFe6bE20866ff601B9/nfts
 
