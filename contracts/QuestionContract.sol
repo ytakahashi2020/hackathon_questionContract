@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract QuestionContract is Ownable, AccessControl{
     IERC721 public erc721Contract;
+    IERC721 public erc721RewardContract;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
@@ -18,6 +19,12 @@ contract QuestionContract is Ownable, AccessControl{
 
     // 全コメント数
     uint256 public commentCount;
+
+    // プレゼントカウント
+    uint256 public rewardCount = 0;
+
+    // ウォレットアドレス => コメント数
+    mapping(address => bool) public isRewardValid;
 
     // 問題番号 => 問題・解答
     mapping(uint256 => string) public question;
@@ -60,8 +67,9 @@ contract QuestionContract is Ownable, AccessControl{
     );
 
     // 合格証NFTのコントラクトを取得する
-    constructor(IERC721 _erc721Contract) {
+    constructor(IERC721 _erc721Contract, IERC721 _erc721RewardContract) {
         erc721Contract = _erc721Contract;
+        erc721RewardContract = _erc721RewardContract;
         _grantRole(ADMIN_ROLE, msg.sender);
     }
 
@@ -73,6 +81,14 @@ contract QuestionContract is Ownable, AccessControl{
     // 合格証NFTの所持数を取得する
     function getErc721Balance(address user) public view returns (uint256) {
         return erc721Contract.balanceOf(user);
+    }
+
+    // 問題変更者にお礼のNFTを送付する
+    function reward() public {
+        require(isRewardValid[msg.sender], "you are not valid");
+        erc721RewardContract.safeTransferFrom(address(this), msg.sender, rewardCount);
+        rewardCount++;
+        isRewardValid[msg.sender] = false;
     }
     
     // ホワイトリストに登録されているか、合格証NFTを持っていればTrue
@@ -148,6 +164,7 @@ contract QuestionContract is Ownable, AccessControl{
         require(userCount[msg.sender][_number] == 1, "you didn't do favor");
         question[_number] = _question;
         answer[_number] = _answer;
+        isRewardValid[msg.sender] = true;
         emit QuestionSet(_number, _question, _answer);
     }
 }

@@ -1,10 +1,10 @@
 # 1 デプロイ方法
 
-以下のコマンドを実行してください。
+以下のコマンドを実行する。
 ```
 npx thirdweb deploy
 ```
-thirdwebが立ち上がるため、そのまま処理を実行
+thirdwebが立ち上がるため、そのまま処理を実行。
 
 # ２ サンプルコード
 
@@ -20,7 +20,7 @@ https://thirdweb.com/mumbai/0xfdE7C0c3EaaD22Ca501571F96d42d28Ee9b89F16/nfts
 
 管理者のみが問題を作成できる。
 
-問題番号と問題、解答を入力する
+問題番号と問題、解答を入力する。
 
 ```sol
 function setQyestions(
@@ -37,9 +37,9 @@ function setQyestions(
 
 ## ２ コメント作成関数 (newComment)
 
-誰でもコメントが可能
+誰でもコメントが可能。
 
-どの問題番号についてかを入力し、コメントを行う
+どの問題番号についてかを入力し、コメントを行う。
 
 ```sol
 function newComment(
@@ -75,7 +75,8 @@ function whitelistUsers(address[] calldata _users) public onlyRole(ADMIN_ROLE) {
 
 ## 4 投票可能者関数 (isWhitelisted)
 
-投票者がホワイトリストに登録されているかをチェックする
+投票者がホワイトリストに登録されているかをチェックする。
+
 ```sol
 function isWhitelisted(address _user) public view returns (bool) {
         for (uint i = 0; i < whitelistedAddresses.length; i++) {
@@ -89,8 +90,9 @@ function isWhitelisted(address _user) public view returns (bool) {
 
 ## 5 合格証NFT所有数確認関数 (getErc721Balance)
 
-別の合格証コントラクトのNFTの所持数を取得する
-合格証コントラクトはコンストラクタで設定済み
+別の合格証コントラクトのNFTの所持数を取得する。
+
+合格証コントラクトはコンストラクタで設定済み。
 
 ```sol
 function getErc721Balance(address user) public view returns (uint256) {
@@ -100,7 +102,7 @@ function getErc721Balance(address user) public view returns (uint256) {
 
 ## 6 有効ユーザー確認関数 (isValidUser)
 
-ホワイトリストに登録されている、もしくは合格証NFTを所持している場合はtrueを返す
+ホワイトリストに登録されている、もしくは合格証NFTを所持している場合はtrueを返す。
 
 ```sol
 function isValidUser(address _user) public view returns (bool) {
@@ -117,7 +119,7 @@ function isValidUser(address _user) public view returns (bool) {
 
 一つの問題に対し、１回までしか投票することができない。
 
-有効投票数に達した時にイベントを発火する
+有効投票数に達した時にイベントを発火する。
 
 ```sol
 function setFavorNumber (uint256 _number) public {
@@ -149,19 +151,35 @@ function changeQyestions(
         require(userCount[msg.sender][_number] == 1, "you didn't do favor");
         question[_number] = _question;
         answer[_number] = _answer;
+        isRewardValid[msg.sender] = true;
         emit QuestionSet(_number, _question, _answer);
 }
 ```
 
 ## 9 管理者権限設定関数 (addAdmin)
 
-管理者権限を設定します。
+管理者権限を設定する。
 
-管理者は問題の作成とホワイトリストの登録が可能になります。
+管理者は問題の作成とホワイトリストの登録が可能になる。
 
 ```sol
 function addAdmin(address admin) public onlyOwner {
         _grantRole(ADMIN_ROLE, admin);
+}
+```
+
+## 10 リワード関数 (reward)
+
+問題変更者のみが実施できる。
+
+外部のコントラクトのsafeTransferFrom関数を実施し、実行者に対してNFTを送付する。
+
+```sol
+function reward() public {
+        require(isRewardValid[msg.sender], "you are not valid");
+        erc721RewardContract.safeTransferFrom(address(this), msg.sender, rewardCount);
+        rewardCount++;
+        isRewardValid[msg.sender] = false;
 }
 ```
 
