@@ -3,9 +3,12 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Sample is Ownable{
+contract QuestionContract is Ownable, AccessControl{
     IERC721 public erc721Contract;
+
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     // 有効投票数
     uint256 validVotesNumber = 3;
@@ -15,7 +18,6 @@ contract Sample is Ownable{
 
     // 全コメント数
     uint256 public commentCount;
-
 
     // 問題番号 => 問題・解答
     mapping(uint256 => string) public question;
@@ -60,6 +62,12 @@ contract Sample is Ownable{
     // 合格証NFTのコントラクトを取得する
     constructor(IERC721 _erc721Contract) {
         erc721Contract = _erc721Contract;
+        _grantRole(ADMIN_ROLE, msg.sender);
+    }
+
+    // 管理者権限を付与する
+    function addAdmin(address admin) public onlyOwner {
+        _grantRole(ADMIN_ROLE, admin);
     }
 
     // 合格証NFTの所持数を取得する
@@ -75,12 +83,12 @@ contract Sample is Ownable{
         return false;
     }
 
-    // 問題作成（オーナーのみ　将来的には管理者権限に変更したい）
+    // 問題作成（管理者のみ）
     function setQyestions(
         uint256 _number,
         string memory _question,
         string memory _answer
-    ) public  onlyOwner {
+    ) public onlyRole(ADMIN_ROLE) {
         question[_number] = _question;
         answer[_number] = _answer;
 
@@ -101,8 +109,8 @@ contract Sample is Ownable{
         emit NewComment(msg.sender, block.timestamp, _comment);
     }
 
-    // 投票可能者設定（オーナーのみ　将来的には管理者権限に変更したい）
-    function whitelistUsers(address[] calldata _users) public onlyOwner {
+    // 投票可能者設定（管理者のみ）
+    function whitelistUsers(address[] calldata _users) public onlyRole(ADMIN_ROLE) {
         delete whitelistedAddresses;
         whitelistedAddresses = _users;
     }

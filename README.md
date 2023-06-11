@@ -18,7 +18,7 @@ https://thirdweb.com/mumbai/0xfdE7C0c3EaaD22Ca501571F96d42d28Ee9b89F16/nfts
 
 ## 1 問題作成関数 (setQyestions)
 
-オーナーのみが問題を作成できる。（将来的には管理者権限を持つものが実行可能にする予定）
+管理者のみが問題を作成できる。
 
 問題番号と問題、解答を入力する
 
@@ -27,7 +27,7 @@ function setQyestions(
         uint256 _number,
         string memory _question,
         string memory _answer
-    ) public  onlyOwner {
+    ) public onlyRole(ADMIN_ROLE) {
         question[_number] = _question;
         answer[_number] = _answer;
 
@@ -58,7 +58,7 @@ function newComment(
 
 ## 3 投票可能者設定関数 (whitelistUsers)
 
-オーナーのみがホワイトリストを作成できる。（将来的には管理者権限を持つものが実行可能にする予定）
+管理者のみがホワイトリストを作成できる。
 
 Questionには、誤りがある可能性がある。
 
@@ -67,7 +67,7 @@ Questionには、誤りがある可能性がある。
 しかし、誰でも投票できることを防ぐため、ホワイトリストを作成し、ホワイトリスト登録者のみが投票できる。
 
 ```sol
-function whitelistUsers(address[] calldata _users) public onlyOwner {
+function whitelistUsers(address[] calldata _users) public onlyRole(ADMIN_ROLE) {
         delete whitelistedAddresses;
         whitelistedAddresses = _users;
 }
@@ -150,6 +150,17 @@ function changeQyestions(
         question[_number] = _question;
         answer[_number] = _answer;
         emit QuestionSet(_number, _question, _answer);
+}
+```
+
+## 9 管理者権限設定関数 (addAdmin)
+
+管理者権限を設定します。
+管理者は問題の作成とホワイトリストの登録が可能になります。
+
+```sol
+function addAdmin(address admin) public onlyOwner {
+        _grantRole(ADMIN_ROLE, admin);
 }
 ```
 
