@@ -14,57 +14,64 @@ contract QuestionContract is Ownable, AccessControl{
     // 有効投票数
     uint256 validVotesNumber = 3;
 
+    // 報酬カウント
+    uint256 public rewardCount = 0;
+
     // 投票できるアドレスのリスト
     address[] public whitelistedAddresses;
+
+    // 問題番号 => 問題・解答
+    mapping(uint256 => string) public questionTextByQuestionNumber;
+    mapping(uint256 => string) public answerTextByQuestionNumber;
+
+    // ウォレットアドレス => 報酬受け取り者かの判定
+    mapping(address => bool) public isValidRewardAddress;
+
+
+    /* コメント関連 */
 
     // 全コメント数
     uint256 public commentCount;
 
-    // プレゼントカウント
-    uint256 public rewardCount = 0;
-
-    // ウォレットアドレス => コメント数
-    mapping(address => bool) public isRewardValid;
-
-    // 問題番号 => 問題・解答
-    mapping(uint256 => string) public question;
-    mapping(uint256 => string) public answer;
-
     // 問題番号 => コメント数
-    mapping(uint256 => uint256) public countByQuestion;
-
-    // コメント番号・インデックス => コメント
-    mapping(uint256 =>  mapping(uint256 => string)) public comment;
+    mapping(uint256 => uint256) public commentCountByQuestion;
 
     // ウォレットアドレス => コメント数
-    mapping(address => uint256) public countByAddress;
-
-    // 問題番号 => 投票数
-    mapping (uint256 => uint256) public favorNumber;
-
-    // ウォレットアドレス・問題番号　⇨ カウント
-    // 問題番号に対して、一人１回まで
-    mapping(address =>  mapping(uint256 => uint256)) public userCount;
+    mapping(address => uint256) public commentCountByAddress;
 
     // ウォレットアドレス・コメント番号　⇨ コメント
-    mapping(address => mapping(uint256 => string)) public commentsByAddress;
+    mapping(address => mapping(uint256 => string)) public commentByAddressForCommentNumber;
+
+    // コメント番号・インデックス => コメント
+    mapping(uint256 =>  mapping(uint256 => string)) public indexedCommentForQuestionNumber;
 
 
+    /* 投票関連 */
+
+    // 問題番号 => 投票数
+    mapping (uint256 => uint256) public voteCountForQuestionNumber;
+
+    // ウォレットアドレス・問題番号　⇨ カウント
+    mapping(address =>  mapping(uint256 => uint256)) public voteCountByAddressForQuestionNumber;
+
+
+    /* イベント */
     event QuestionSet (
         uint256 indexed _number,
-        string question,
-        string answer
+        string questionTextByQuestionNumber,
+        string answerTextByQuestionNumber
     );
 
-    event NewComment (
+    event CommentSet (
         address indexed from,
         uint256 timestamp,
         string message
     );
 
-    event ValidVote (
+    event ValidVoteSet (
         uint256 number
     );
+
 
     // 合格証NFTのコントラクトを取得する
     constructor(IERC721 _erc721Contract, IERC721 _erc721RewardContract) {
@@ -84,11 +91,11 @@ contract QuestionContract is Ownable, AccessControl{
     }
 
     // 問題変更者にお礼のNFTを送付する
-    function reward() public {
-        require(isRewardValid[msg.sender], "you are not valid");
+    function requestReward() public {
+        require(isValidRewardAddress[msg.sender], "you are not valid");
         erc721RewardContract.safeTransferFrom(address(this), msg.sender, rewardCount);
         rewardCount++;
-        isRewardValid[msg.sender] = false;
+        isValidRewardAddress[msg.sender] = false;
     }
     
     // ホワイトリストに登録されているか、合格証NFTを持っていればTrue
@@ -100,33 +107,33 @@ contract QuestionContract is Ownable, AccessControl{
     }
 
     // 問題作成（管理者のみ）
-    function setQyestions(
+    function setQuestion(
         uint256 _number,
         string memory _question,
         string memory _answer
     ) public onlyRole(ADMIN_ROLE) {
-        question[_number] = _question;
-        answer[_number] = _answer;
+        questionTextByQuestionNumber[_number] = _question;
+        answerTextByQuestionNumber[_number] = _answer;
 
         emit QuestionSet(_number, _question, _answer);
     }
 
     // コメントの作成（誰でも可能）
-    function newComment(
+    function setCommentForQuestionNumber(
         uint256 comment_number,
         string memory _comment
     ) public {
         commentCount++;
-        countByQuestion[comment_number]++;
-        countByAddress[msg.sender]++;
-        comment[comment_number][countByQuestion[comment_number]] = _comment;
-        commentsByAddress[msg.sender][countByAddress[msg.sender]] = _comment;
+        commentCountByQuestion[comment_number]++;
+        commentCountByAddress[msg.sender]++;
+        indexedCommentForQuestionNumber[comment_number][commentCountByQuestion[comment_number]] = _comment;
+        commentByAddressForCommentNumber[msg.sender][commentCountByAddress[msg.sender]] = _comment;
 
-        emit NewComment(msg.sender, block.timestamp, _comment);
+        emit CommentSet(msg.sender, block.timestamp, _comment);
     }
 
     // 投票可能者設定（管理者のみ）
-    function whitelistUsers(address[] calldata _users) public onlyRole(ADMIN_ROLE) {
+    function setWhitelistUsers(address[] calldata _users) public onlyRole(ADMIN_ROLE) {
         delete whitelistedAddresses;
         whitelistedAddresses = _users;
     }
@@ -142,29 +149,29 @@ contract QuestionContract is Ownable, AccessControl{
     }
 
     // 投票実行（ホワイトリスト登録者のみ可能）
-    function setFavorNumber (uint256 _number) public {
+    function submitVoteForQuestionNumber (uint256 _number) public {
         require(isValidUser(msg.sender), "user is not valid");
-        require(userCount[msg.sender][_number] == 0, "you already set favor");
-        favorNumber[_number]++;
-        userCount[msg.sender][_number]++;
+        require(voteCountByAddressForQuestionNumber[msg.sender][_number] == 0, "you already set favor");
+        voteCountForQuestionNumber[_number]++;
+        voteCountByAddressForQuestionNumber[msg.sender][_number]++;
         // 有効投票数の達した時にイベント発生
-        if ( favorNumber[_number] == validVotesNumber ) {
-            emit ValidVote(_number);
+        if ( voteCountForQuestionNumber[_number] == validVotesNumber ) {
+            emit ValidVoteSet(_number);
         }
     }
 
     // 問題変更（投票者のみ変更可能）
-    function changeQyestions(
+    function changeQuestion(
         uint256 _number,
         string memory _question,
         string memory _answer
     ) public {
-        require(favorNumber[_number] >= validVotesNumber, "favorNumber is too low");
+        require(voteCountForQuestionNumber[_number] >= validVotesNumber, "favorNumber is too low");
         require(isValidUser(msg.sender), "user is not valid");
-        require(userCount[msg.sender][_number] == 1, "you didn't do favor");
-        question[_number] = _question;
-        answer[_number] = _answer;
-        isRewardValid[msg.sender] = true;
+        require(voteCountByAddressForQuestionNumber[msg.sender][_number] == 1, "you didn't do favor");
+        questionTextByQuestionNumber[_number] = _question;
+        answerTextByQuestionNumber[_number] = _answer;
+        isValidRewardAddress[msg.sender] = true;
         emit QuestionSet(_number, _question, _answer);
     }
 }
