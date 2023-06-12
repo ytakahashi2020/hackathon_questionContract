@@ -20,47 +20,47 @@ https://thirdweb.com/mumbai/0x6e8FFFA7Dc7001285ABE71CFe6bE20866ff601B9/nfts
 
 # 5 仕様一覧
 
-## 1 問題作成関数 (setQyestions)
+## 1 問題作成関数 (setQuestion)
 
 管理者のみが問題を作成できる。
 
 問題番号と問題、解答を入力する。
 
 ```sol
-function setQyestions(
+function setQuestion(
         uint256 _number,
         string memory _question,
         string memory _answer
     ) public onlyRole(ADMIN_ROLE) {
-        question[_number] = _question;
-        answer[_number] = _answer;
+        questionTextByQuestionNumber[_number] = _question;
+        answerTextByQuestionNumber[_number] = _answer;
 
         emit QuestionSet(_number, _question, _answer);
 }
 ```
 
-## ２ コメント作成関数 (newComment)
+## ２ コメント作成関数 (setCommentForQuestionNumber)
 
 誰でもコメントが可能。
 
 どの問題番号についてかを入力し、コメントを行う。
 
 ```sol
-function newComment(
+function setCommentForQuestionNumber(
         uint256 comment_number,
         string memory _comment
     ) public {
         commentCount++;
-        countByQuestion[comment_number]++;
-        countByAddress[msg.sender]++;
-        comment[comment_number][countByQuestion[comment_number]] = _comment;
-        commentsByAddress[msg.sender][countByAddress[msg.sender]] = _comment;
+        commentCountByQuestion[comment_number]++;
+        commentCountByAddress[msg.sender]++;
+        indexedCommentForQuestionNumber[comment_number][commentCountByQuestion[comment_number]] = _comment;
+        commentByAddressForCommentNumber[msg.sender][commentCountByAddress[msg.sender]] = _comment;
 
-        emit NewComment(msg.sender, block.timestamp, _comment);
+        emit CommentSet(msg.sender, block.timestamp, _comment);
 }
 ```
 
-## 3 投票可能者設定関数 (whitelistUsers)
+## 3 投票可能者設定関数 (setWhitelistUsers)
 
 管理者のみがホワイトリストを作成できる。
 
@@ -71,10 +71,10 @@ Questionには、誤りがある可能性がある。
 しかし、誰でも投票できることを防ぐため、ホワイトリストを作成し、ホワイトリスト登録者のみが投票できる。
 
 ```sol
-function whitelistUsers(address[] calldata _users) public onlyRole(ADMIN_ROLE) {
+function setWhitelistUsers(address[] calldata _users) public onlyRole(ADMIN_ROLE) {
         delete whitelistedAddresses;
         whitelistedAddresses = _users;
-}
+    }
 ```
 
 ## 4 投票可能者関数 (isWhitelisted)
@@ -117,7 +117,7 @@ function isValidUser(address _user) public view returns (bool) {
 }
 ```
 
-## 7 投票実行関数 (setFavorNumber)
+## 7 投票実行関数 (submitVoteForQuestionNumber)
 
 有効なユーザーのみが投票を行うことができる。
 
@@ -126,36 +126,36 @@ function isValidUser(address _user) public view returns (bool) {
 有効投票数に達した時にイベントを発火する。
 
 ```sol
-function setFavorNumber (uint256 _number) public {
+function submitVoteForQuestionNumber (uint256 _number) public {
         require(isValidUser(msg.sender), "user is not valid");
-        require(userCount[msg.sender][_number] == 0, "you already set favor");
-        favorNumber[_number]++;
-        userCount[msg.sender][_number]++;
+        require(voteCountByAddressForQuestionNumber[msg.sender][_number] == 0, "you already set favor");
+        voteCountForQuestionNumber[_number]++;
+        voteCountByAddressForQuestionNumber[msg.sender][_number]++;
         // 有効投票数の達した時にイベント発生
-        if ( favorNumber[_number] == validVotesNumber ) {
-            emit ValidVote(_number);
+        if ( voteCountForQuestionNumber[_number] == validVotesNumber ) {
+            emit ValidVoteSet(_number);
         }
 }
 ```
 
-## 8 問題変更関数 (changeQyestions)
+## 8 問題変更関数 (changeQuestion)
 
 有効なユーザーかつ投票者のみが問題を作成できる。
 
 問題が変更された場合に、イベントが発火される。
 
 ```sol
-function changeQyestions(
+function changeQuestion(
         uint256 _number,
         string memory _question,
         string memory _answer
     ) public {
-        require(favorNumber[_number] >= validVotesNumber, "favorNumber is too low");
+        require(voteCountForQuestionNumber[_number] >= validVotesNumber, "favorNumber is too low");
         require(isValidUser(msg.sender), "user is not valid");
-        require(userCount[msg.sender][_number] == 1, "you didn't do favor");
-        question[_number] = _question;
-        answer[_number] = _answer;
-        isRewardValid[msg.sender] = true;
+        require(voteCountByAddressForQuestionNumber[msg.sender][_number] == 1, "you didn't do favor");
+        questionTextByQuestionNumber[_number] = _question;
+        answerTextByQuestionNumber[_number] = _answer;
+        isValidRewardAddress[msg.sender] = true;
         emit QuestionSet(_number, _question, _answer);
 }
 ```
@@ -172,18 +172,18 @@ function addAdmin(address admin) public onlyOwner {
 }
 ```
 
-## 10 リワード関数 (reward)
+## 10 リワード関数 (requestReward)
 
 問題変更者のみが実施できる。
 
 外部のコントラクトのsafeTransferFrom関数を実施し、実行者に対してNFTを送付する。
 
 ```sol
-function reward() public {
-        require(isRewardValid[msg.sender], "you are not valid");
+function requestReward() public {
+        require(isValidRewardAddress[msg.sender], "you are not valid");
         erc721RewardContract.safeTransferFrom(address(this), msg.sender, rewardCount);
         rewardCount++;
-        isRewardValid[msg.sender] = false;
+        isValidRewardAddress[msg.sender] = false;
 }
 ```
 
