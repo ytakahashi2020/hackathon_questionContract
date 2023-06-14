@@ -13,6 +13,7 @@ https://thirdweb.com/astar/0x7C89A17595D162EC95aecb79080cC11a72c8cd76/explorer
 # 3 合格証NFT
 
 https://thirdweb.com/astar/0x335F3DDf31c922234D4104DBE5fD83BFDc639052/nfts
+
 ![](images/1.png)
 
 なお、こちらの画像は、[HeroicAnimals](https://twitter.com/Heroic_Animals)さんからご好意で提供いただいたものになります。
@@ -20,6 +21,7 @@ https://thirdweb.com/astar/0x335F3DDf31c922234D4104DBE5fD83BFDc639052/nfts
 # 4 リワードNFT
 
 https://thirdweb.com/astar/0x333103e098A4E10cC27c8b20F5C2e3f042F0726C/nfts
+
 ![](images/2.png)
 
 なお、こちらの画像も、[HeroicAnimals](https://twitter.com/Heroic_Animals)さんからご好意で提供いただいたものになります。
