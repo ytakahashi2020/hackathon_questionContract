@@ -6,17 +6,27 @@ npx thirdweb deploy
 ```
 thirdwebが立ち上がるため、そのまま処理を実行。
 
-# ２ サンプルコード
+# ２ メインコントラクト
 
-https://thirdweb.com/mumbai/0xbffCb094AC81aeCDE32ce274cCA218bC487d8FB1/explorer
+https://thirdweb.com/astar/0x7C89A17595D162EC95aecb79080cC11a72c8cd76/explorer
 
 # 3 合格証NFT
 
-https://thirdweb.com/mumbai/0xfdE7C0c3EaaD22Ca501571F96d42d28Ee9b89F16/nfts
+![](images/1.png)
+
+https://thirdweb.com/astar/0x335F3DDf31c922234D4104DBE5fD83BFDc639052/nfts
+
+なお、こちらの画像は、[HeroicAnimals](https://twitter.com/Heroic_Animals)さんからご好意で提供いただいたものになります。
+
+![](images/3.png)
 
 # 4 リワードNFT
 
-https://thirdweb.com/mumbai/0x6e8FFFA7Dc7001285ABE71CFe6bE20866ff601B9/nfts
+![](images/2.png)
+
+https://thirdweb.com/astar/0x333103e098A4E10cC27c8b20F5C2e3f042F0726C/nfts
+
+なお、こちらの画像も、[HeroicAnimals](https://twitter.com/Heroic_Animals)さんからご好意で提供いただいたものになります。
 
 # 5 仕様一覧
 
