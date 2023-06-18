@@ -8,7 +8,7 @@ thirdwebが立ち上がるため、そのまま処理を実行。
 
 # ２ メインコントラクト
 
-https://thirdweb.com/astar/0x7C89A17595D162EC95aecb79080cC11a72c8cd76/explorer
+https://thirdweb.com/astar/0x0af29Fa8394179661B4A24886452442E16eB180d/explorer
 
 # 3 合格証NFT
 
@@ -20,7 +20,7 @@ https://thirdweb.com/astar/0x335F3DDf31c922234D4104DBE5fD83BFDc639052/nfts
 
 # 4 リワードNFT
 
-https://thirdweb.com/astar/0x333103e098A4E10cC27c8b20F5C2e3f042F0726C/nfts
+https://thirdweb.com/astar/0xa1ace383306CcB74F5263d94E28A4060057ED141/nfts
 
 ![](images/2.png)
 
@@ -194,6 +194,34 @@ function requestReward() public {
         isValidRewardAddress[msg.sender] = false;
 }
 ```
+## 11 全問題取得関数 (getAllQuestions)
+
+全ての問題を取得できる。
+
+```sol
+function getAllQuestions() public view returns (string[] memory) {
+        string[] memory questions = new string[](questionCount);
+        for (uint i = 0; i < questionCount; i++) {
+            questions[i] = questionTextByQuestionNumber[i + 1];
+        }
+        return questions;
+}
+```
+
+## 12 全解答取得関数 (getAllAnswers)
+
+全ての問題を取得できる。
+
+```sol
+function getAllAnswers() public view returns (string[] memory) {
+        string[] memory answers = new string[](answerCount);
+        for (uint i = 0; i < answerCount; i++) {
+            answers[i] = answerTextByQuestionNumber[i + 1];
+        }
+        return answers;
+}
+```
+
 
 ## Getting Started
 

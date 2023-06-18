@@ -24,6 +24,12 @@ contract QuestionContract is Ownable, AccessControl{
     mapping(uint256 => string) public questionTextByQuestionNumber;
     mapping(uint256 => string) public answerTextByQuestionNumber;
 
+    // 全問題数
+    uint256 public questionCount;
+
+    // 全回答数
+    uint256 public answerCount;
+
     // ウォレットアドレス => 報酬受け取り者かの判定
     mapping(address => bool) public isValidRewardAddress;
 
@@ -72,6 +78,24 @@ contract QuestionContract is Ownable, AccessControl{
         uint256 number
     );
 
+    // 全ての問題を取得する
+    function getAllQuestions() public view returns (string[] memory) {
+        string[] memory questions = new string[](questionCount);
+        for (uint i = 0; i < questionCount; i++) {
+            questions[i] = questionTextByQuestionNumber[i + 1];
+        }
+        return questions;
+    }
+
+    // 全ての回答を取得する
+    function getAllAnswers() public view returns (string[] memory) {
+        string[] memory answers = new string[](answerCount);
+        for (uint i = 0; i < answerCount; i++) {
+            answers[i] = answerTextByQuestionNumber[i + 1];
+        }
+        return answers;
+    }
+
 
     // 合格証NFTのコントラクトを取得する
     constructor(IERC721 _erc721Contract, IERC721 _erc721RewardContract) {
@@ -114,6 +138,8 @@ contract QuestionContract is Ownable, AccessControl{
     ) public onlyRole(ADMIN_ROLE) {
         questionTextByQuestionNumber[_number] = _question;
         answerTextByQuestionNumber[_number] = _answer;
+        questionCount++;
+        answerCount++;
 
         emit QuestionSet(_number, _question, _answer);
     }
