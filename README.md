@@ -26,7 +26,20 @@ https://thirdweb.com/astar/0xa1ace383306CcB74F5263d94E28A4060057ED141/nfts
 
 なお、こちらの画像も、[HeroicAnimals](https://twitter.com/Heroic_Animals)さんからご好意で提供いただいたものになります。
 
-# 5 仕様一覧
+# 5 フロントエンド
+
+このコントラクトを元にして作成した、Webページ、Githubは次の通りです。
+
+## 1 Webページ
+
+https://ai-crypto-hackathon-git-main-koshin01.vercel.app/
+
+## 2 Github
+
+https://github.com/koshin01/ai_crypto_hackathon
+
+
+# 6 仕様一覧
 
 ## 1 問題作成関数 (setQuestion)
 
