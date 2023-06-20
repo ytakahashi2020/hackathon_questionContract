@@ -30,11 +30,11 @@ https://thirdweb.com/astar/0xa1ace383306CcB74F5263d94E28A4060057ED141/nfts
 
 このコントラクトを元にして作成した、Webページ、Githubは次の通りです。
 
-## 1 Webページ
+### 1 Webページ
 
 https://ai-crypto-hackathon-git-main-koshin01.vercel.app/
 
-## 2 Github
+### 2 Github
 
 https://github.com/koshin01/ai_crypto_hackathon
 
