@@ -223,7 +223,7 @@ function getAllQuestions() public view returns (string[] memory) {
 
 ## 12 全解答取得関数 (getAllAnswers)
 
-全ての問題を取得できる。
+全ての解答を取得できる。
 
 ```sol
 function getAllAnswers() public view returns (string[] memory) {
